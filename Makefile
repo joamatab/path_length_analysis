@@ -1,59 +1,32 @@
-# =========================================================================================
-# Copyright (c) 2024, Mabrains LLC
-# Licensed under the GNU Lesser General Public License, Version 3.0 (the "License");
-# you may not use this file except in compliance with the License.
+install: 
+	pip install -e .[dev]
+	pre-commit install
 
-#                    GNU Lesser General Public License
-#                       Version 3, 29 June 2007
+dev:
+	pip install -e .[dev,docs]
 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# SPDX-License-Identifier: LGPL-3.0
-# =========================================================================================
+test:
+	pytest -s
 
-TOP_DIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
-VENV_RUN_COMMAND = $(TOP_DIR)/actions_venv/bin/activate
+update-pre:
+	pre-commit autoupdate --bleeding-edge
 
-# ======================= 
-# ------ ENV SETUP ------ 
-# =======================
+git-rm-merged:
+	git branch -D `git branch --merged | grep -v \* | xargs`
 
-$(TOP_DIR)/actions_venv:
-	@python3 -m venv $(TOP_DIR)/actions_venv
+build:
+	rm -rf dist
+	pip install build
+	python -m build
 
-# Install requirements	
-env: $(TOP_DIR)/actions_venv
-	@. $(VENV_RUN_COMMAND); pip install -r requirements.test.txt -r requirements.txt 
+jupytext:
+	jupytext docs/**/*.ipynb --to py
 
-# ========================
-# ----- LINTING TEST -----
-# ========================
+notebooks:
+	jupytext docs/**/*.py --to ipynb
 
-lint_python: env
-	@. $(VENV_RUN_COMMAND); flake8 .
+docs:
+	jb build docs
 
-# ============================
-# ----- PATH-LENGTH TEST -----
-# ============================
+.PHONY: drc doc docs
 
-.ONESHELL:
-path_length_test: env
-	@export PYTHONPATH=$(PYTHONPATH):$(TOP_DIR)
-	@. $(VENV_RUN_COMMAND); pytest -v tests/pytest_path_length.py
-# =================
-# ----- Clean -----
-# =================
-
-# remove run dir folder
-clean:
-	@rm -rf length_run_*
