@@ -1,6 +1,5 @@
 ## Environment
 
-- ngspice Version:
 - OS/Platform:
 
 ## Expected Behavior

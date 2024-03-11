@@ -539,8 +539,8 @@ def get_paths_report(graph: nx.Graph) -> pd.DataFrame:
     """
     Generate a report of shortest path lengths between all pairs of nodes in a graph.
 
-    Parameters:
-    - graph (nx.Graph): The input graph with weighted edges.
+    Args:
+        graph (nx.Graph): The input graph with weighted edges.
 
     Returns:
     pd.DataFrame: DataFrame containing information about shortest path lengths
@@ -628,12 +628,12 @@ def path_length(
     """
     Calculate the shortest path lengths between cutting polygons on paths in a gds file.
 
-    Parameters:
-    - gds_file (str): The path to the gds file.
-    - path_layer (tuple[int, int]): Layer number and dtype for paths.
-    - cutting_layer (tuple[int, int]): Layer number and dtype for cutting regions.
-    - cell_name (str, optional): Name of the cell. Defaults to None.
-    - nodes (list[str], optional): list of node names to consider for path length report.
+    Args:
+        gds_file (str): The path to the gds file.
+        path_layer (tuple[int, int]): Layer number and dtype for paths.
+        cutting_layer (tuple[int, int]): Layer number and dtype for cutting regions.
+        cell_name (str, optional): Name of the cell. Defaults to None.
+        nodes (list[str], optional): list of node names to consider for path length report.
 
     Returns:
     pd.DataFrame: DataFrame containing information about shortest path lengths
