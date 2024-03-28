@@ -29,6 +29,7 @@ from math import sqrt
 import pandas as pd
 import networkx as nx
 from functools import partial
+import pathlib
 
 
 def get_length(poly: gdstk.Polygon) -> float:
@@ -620,8 +621,8 @@ def key_exist_dict(key: str, d: dict):
 
 def path_length(
     gds_file: str,
-    path_layer: dict[str, int],
-    cutting_layer: dict[str, int],
+    path_layer: tuple[int, int],
+    cutting_layer: tuple[int, int],
     cell_name: str | None = None,
     nodes: list[str] = [],
 ) -> pd.DataFrame:
@@ -659,6 +660,9 @@ def path_length(
     )
     ```
     """
+
+    gds_file = pathlib.Path(gds_file)
+
     # Make sure that both path and cutting layer passed in proper format and make them as a list
     path_ly = [
         key_exist_dict("layer_no", path_layer),
@@ -669,9 +673,8 @@ def path_length(
         key_exist_dict("layer_dtype", cutting_layer),
     ]
     # Reading input layout file
-    if not os.path.isfile(gds_file):
-        logging.error(f"{gds_file} file can't be found")
-        exit(1)
+    if not gds_file.exits():
+        raise FileNotFoundError(f"File {gds_file} not found")
     gdstk_lib = gdstk.read_gds(gds_file)
     # get path_polygons and cutting polygons
     path_polygons, cutting_polygons, labels = get_polygons(

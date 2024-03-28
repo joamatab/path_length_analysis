@@ -4,7 +4,7 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name="pathlength"
+name="path_analysis"
 description="Path length analyzer"
 classifiers = [
 	"Programming Language :: Python :: 3.10",
@@ -25,10 +25,10 @@ dependencies = [
     "tqdm",
     "gdstk==0.9.50",
     "pyyaml",
-    'PyYAML',
-    'typing_extensions',
-    'networkx',
-    'Pyarrow',
+    "PyYAML",
+    "typing_extensions",
+    "networkx",
+    "Pyarrow",
 
 ]
 readme = "README.md"
@@ -52,7 +52,7 @@ docs = [
 find = {}
 
 [project.scripts]
-pathlength = "path_analysis.cli:cli"
+path_analysis = "path_analysis.cli:cli"
 
 
 [tool.pytest.ini_options]
