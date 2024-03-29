@@ -1,48 +1,14 @@
-# =========================================================================================
-# Copyright (c) 2024, Mabrains LLC
-# Licensed under the GNU Lesser General Public License, Version 3.0 (the "License");
-# you may not use this file except in compliance with the License.
-
-#                    GNU Lesser General Public License
-#                       Version 3, 29 June 2007
-
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published
-# by the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# SPDX-License-Identifier: LGPL-3.0
-
-# =========================================================================================
-
-"""
-Run Path Length Measurements.
-
-Usage:
-  path_length.py  --config=<config_file_path> [--run_dir=<run_dir_path>]
-
-Options:
-    --help -h                    Print this help message.
-    --config=<param>             Yaml file contains the path length parameters.
-    --run_dir=<run_dir_path>     directory to save all the results [default: pwd]
-"""
-
 import logging
 import os
 from datetime import datetime
 import time
-from docopt import docopt
 import yaml
 import pandas as pd
-from typing import Any
+from typing import Any, Optional
 from path_analysis.path_analysis import path_length
+import typer
+
+app = typer.Typer()
 
 
 def read_yaml(yaml_file: str) -> dict[str, Any]:
@@ -65,40 +31,44 @@ def read_yaml(yaml_file: str) -> dict[str, Any]:
     return yaml_dic
 
 
-if __name__ == "__main__":
-    # arguments
-    arguments = docopt(__doc__, version="RUN Path Length: 1.0")
+@app.command()
+def main(
+    config: str = typer.Option(..., "--config", help="YAML configuration file path"),
+    run_dir: Optional[str] = typer.Option(
+        None, "--run-dir", help="Directory to store the run outputs"
+    ),
+):
+    """
+    Runs Path Length analysis with given configuration.
 
+    Args:
+        config (str): Path to the YAML configuration file.
+        run_dir (str, optional): Directory to store run outputs. Defaults to the current directory.
+    """
     # logs format
     now_str = datetime.utcnow().strftime("length_run_%Y_%m_%d_%H_%M_%S")
 
-    # checking config file existance
-    config_in = arguments["--config"]
-    if not os.path.exists(config_in):
-        logging.error(f"The configuration file {config_in} doesn't exist, please check")
-        exit(1)
+    # checking config file existence
+    if not os.path.exists(config):
+        logging.error(f"The configuration file {config} doesn't exist, please check")
+        raise typer.Exit(code=1)
 
-    if (
-        arguments["--run_dir"] == "pwd"
-        or arguments["--run_dir"] == ""
-        or arguments["--run_dir"] is None
-    ):
+    if run_dir in ["pwd", "", None]:
         run_dir = os.path.join(os.path.abspath(os.getcwd()), now_str)
     else:
-        run_dir = os.path.abspath(arguments["--run_dir"])
+        run_dir = os.path.abspath(run_dir)
 
-    # checking run_dir existance & creation
+    # checking run_dir existence & creation
     if not os.path.isdir(run_dir):
         os.makedirs(run_dir, exist_ok=True)
     else:
-        # shutil.rmtree(run_dir)
         os.makedirs(run_dir, exist_ok=True)
 
     # logs setup
     logging.basicConfig(
         level=logging.DEBUG,
         handlers=[
-            logging.FileHandler(os.path.join(run_dir, "{}.log".format(now_str))),
+            logging.FileHandler(os.path.join(run_dir, f"{now_str}.log")),
             logging.StreamHandler(),
         ],
         format="%(asctime)s | %(levelname)-7s | %(message)s",
@@ -109,7 +79,7 @@ if __name__ == "__main__":
     pd.set_option("display.max_rows", None)
 
     # reading config file
-    config_data = read_yaml(config_in)
+    config_data = read_yaml(config)
 
     # Calling the main function
     time_start = time.time()
@@ -122,3 +92,7 @@ if __name__ == "__main__":
 
     # Reporting execution time
     logging.info(f"Path length execution time: {exc_time} sec")
+
+
+if __name__ == "__main__":
+    app()

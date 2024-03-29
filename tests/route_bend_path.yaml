@@ -22,7 +22,7 @@
 
 # =========================================================================================
 
-gds_file: tests/route_bend_path.gds
+gds_file: route_bend_path.gds
 cell_name: TOP
 path_layer: 
   layer_no: 1
