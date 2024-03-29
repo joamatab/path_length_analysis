@@ -1,4 +1,3 @@
-from path_analysis import path_length
 import gdsfactory as gf
 
 
@@ -35,14 +34,16 @@ def routes():
     )
     for i, route in enumerate(routes):
         c.add(route.references)
-        gf.add_pins.add_pin_rectangle(c, port=route.ports[0], layer=(2,0))
-        gf.add_pins.add_pin_rectangle(c, port=route.ports[1], layer=(2,0))
+        print(route.length)
+        gf.add_pins.add_pin_rectangle(c, port=route.ports[0], layer=(2,0), port_margin=1)
+        gf.add_pins.add_pin_rectangle(c, port=route.ports[1], layer=(2,0), port_margin=1)
         c.add_label(f"i{i}", position=route.ports[0].center, layer=(2,0))
         c.add_label(f"o{i}", position=route.ports[1].center, layer=(2,0))
     return c
 
 
 if __name__ == "__main__":
+    from path_analysis import path_length
     c = routes()
     # c = c.flatten()
     # c.name= 'connect_bundle'
