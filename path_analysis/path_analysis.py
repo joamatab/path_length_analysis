@@ -142,12 +142,10 @@ def _get_polygons(
     """
     cells = gdstk_lib.top_level()
     if len(cells) < 1:
-        logging.error("no cells available")
-        exit(1)
+        raise ValueError("no cells available")
 
     if len(cells) > 1 and cell_name is None:
-        logging.error("Please specify a cell name when multiple top-level cells exist.")
-        exit(1)
+        raise ValueError("Please specify a cell name when multiple top-level cells exist.")
 
     cell: gdstk.Cell | None = None
 
@@ -159,8 +157,7 @@ def _get_polygons(
                 cell = c
                 break
     if cell is None:
-        logging.error("Invalid cell name")
-        exit(1)
+        raise ValueError("Invalid cell name")
 
     path_polygons = cell.get_polygons(
         depth=None, layer=path_layer[0], datatype=path_layer[1]
@@ -170,7 +167,7 @@ def _get_polygons(
         depth=None, layer=cutting_layer[0], datatype=cutting_layer[1]
     )
     labels = cell.get_labels(
-        depth=None, layer=cutting_layer[0], texttype=cutting_layer[1]
+        layer=cutting_layer[0], texttype=cutting_layer[1]
     )
     return path_polygons, cutting_polygons, labels
 
@@ -179,7 +176,7 @@ def filter_polygons(
     path_polygons: list[gdstk.Polygon],
     cutting_polygons: list[gdstk.Polygon],
     labels: list[gdstk.Label],
-) -> tuple[list[list[gdstk.Polygon]], list[list[gdstk.Label]]]:
+) -> tuple[list[gdstk.Polygon], list[gdstk.Label]]:
     """
     Filters cutting polygons and labels based on their relationship with path polygons.
 
@@ -218,16 +215,16 @@ def filter_polygons(
         if condition1
     ]
 
+
     labels_text = [(label.text) for label in labels]
     duplicate_labels = get_duplicates(labels_text)
     if duplicate_labels:
-        logging.error(
+        raise ValueError(
             (
                 f"found duplicate labels {duplicate_labels},"
                 "please make sure to name your cutting polygons with a unique name"
             )
         )
-        exit(1)
 
     return _rearrange_data(path_polygons, cutting_polygons, labels)
 
@@ -399,7 +396,6 @@ def construct_graph_data_frame(
             for sub_poly in splitted_polygons:
                 node_names = get_node_names(sub_poly, path_labels)
                 if len(node_names) == 1:
-                    continue
                     port1 = node_names[0]
                     port2 = f"polygon_{i}_tail_{tail_counter}"
                     tail_counter += 1
@@ -468,8 +464,7 @@ def _get_path_labels(
     if intersection:
         points = intersection[0].points
     else:
-        logging.error(f"failed to find intersection between {cutting_poly}, and {path}")
-        exit(1)
+        raise ValueError(f"failed to find intersection between {cutting_poly}, and {path}")
     return [gdstk.Label(text, origin=point) for point in points]
 
 
@@ -563,16 +558,13 @@ def get_paths_report(graph: nx.Graph) -> pd.DataFrame:
     for start_node in nodes:
         for end_node in nodes:
             if start_node != end_node:
-                try:
-                    path_length = nx.shortest_path_length(
+                path_length = nx.shortest_path_length(
                         graph, start_node, end_node, weight="length"
                     )
-                except nx.NetworkXNoPath:
-                    path_length = -1
                 records.append([start_node, end_node, path_length])
+
     if not records:
-        logging.error(f"no_nodes detected : {records}")
-        exit(1)
+        raise ValueError(f"no_nodes detected : {records}")
 
     report = pd.DataFrame(records)
     report.columns = ["port1", "port2", "length (um)"]
@@ -615,8 +607,7 @@ def key_exist_dict(key: str, d: dict):
     if key in d:
         return d[key]
     else:
-        logging.error(f"There is no {key} parameter in the config file, please recheck")
-        exit(1)
+        raise ValueError(f"There is no {key} parameter in the config file, please recheck")
 
 
 def path_length(
@@ -630,11 +621,11 @@ def path_length(
     Calculate the shortest path lengths between cutting polygons on paths in a gds file.
 
     Args:
-        gds_file (str): The path to the gds file.
-        path_layer (tuple[int, int]): Layer number and dtype for paths.
-        cutting_layer (tuple[int, int]): Layer number and dtype for cutting regions.
-        cell_name (str, optional): Name of the cell. Defaults to None.
-        nodes (list[str], optional): list of node names to consider for path length report.
+        gds_file: The path to the gds file.
+        path_layer: Layer number and dtype for paths.
+        cutting_layer: Layer number and dtype for cutting regions.
+        cell_name: Name of the cell. Defaults to None.
+        nodes: list of node names to consider for path length report.
 
     Returns:
     pd.DataFrame: DataFrame containing information about shortest path lengths
@@ -664,23 +655,16 @@ def path_length(
     gds_file = pathlib.Path(gds_file)
 
     # Make sure that both path and cutting layer passed in proper format and make them as a list
-    path_ly = [
-        key_exist_dict("layer_no", path_layer),
-        key_exist_dict("layer_dtype", path_layer),
-    ]
-    cut_ly = [
-        key_exist_dict("layer_no", cutting_layer),
-        key_exist_dict("layer_dtype", cutting_layer),
-    ]
     # Reading input layout file
-    if not gds_file.exits():
+    if not gds_file.exists():
         raise FileNotFoundError(f"File {gds_file} not found")
     gdstk_lib = gdstk.read_gds(gds_file)
+
     # get path_polygons and cutting polygons
     path_polygons, cutting_polygons, labels = get_polygons(
         gdstk_lib=gdstk_lib,
-        path_layer=path_ly,
-        cutting_layer=cut_ly,
+        path_layer=path_layer,
+        cutting_layer=cutting_layer,
         cell_name=cell_name,
     )
     # get networkx graph
@@ -690,7 +674,7 @@ def path_length(
     report = get_paths_report(graph)
     report_clean_df = report[report["length (um)"] > 0]
     # Filter out required ports only
-    if nodes:
-        return filter_path_report(report_clean_df, nodes)
+    # if nodes:
+    #     return filter_path_report(report_clean_df, nodes)
 
     return report_clean_df
