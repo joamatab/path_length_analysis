@@ -36,7 +36,9 @@ def test_simple_path():
 
     # Call the function to get the actual output
     actual_output = path_length(
-        gds_file="route_path.gds", path_layer=(41, 0), cutting_layer=(66, 0)
+        gds_file="tests/route_path.gds",
+        path_layer={"layer_no": 41, "layer_dtype": 0},
+        cutting_layer={"layer_no": 66, "layer_dtype": 0},
     )
 
     # Sort ports to make sure that both data have same order [port1 & port2 are interchangeable]
@@ -50,8 +52,7 @@ def test_simple_path():
     actual_output.reset_index(drop=True, inplace=True)
 
     # Use pandas testing functions to check the correctness
-    # pd.testing.assert_frame_equal(actual_output, expected_output)
-    return actual_output
+    pd.testing.assert_frame_equal(actual_output, expected_output)
 
 
 # Pytest function to test the correctness of the output DataFrame for intermediate route example
@@ -63,7 +64,9 @@ def test_intermediate_path():
 
     # Call the function to get the actual output
     actual_output = path_length(
-        gds_file="route_bend_path.gds", path_layer=(1, 0), cutting_layer=(66, 0)
+        gds_file="tests/route_bend_path.gds",
+        path_layer={"layer_no": 1, "layer_dtype": 0},
+        cutting_layer={"layer_no": 66, "layer_dtype": 0},
     )
     print(actual_output)
     # Sort ports to make sure that both data have same order [port1 & port2 are interchangeable]
@@ -92,9 +95,9 @@ def test_complex_path():
     )
     # Call the function to get the actual output
     actual_output = path_length(
-        gds_file="lidar_no_rad.gds",
-        path_layer=(1, 0),
-        cutting_layer=(1, 10),
+        gds_file="tests/lidar_no_rad.gds",
+        path_layer={"layer_no": 1, "layer_dtype": 0},
+        cutting_layer={"layer_no": 1, "layer_dtype": 10},
         nodes=[
             "splitter_p1_start",
             "splitter_p1_end",
@@ -114,10 +117,3 @@ def test_complex_path():
 
     # Use pandas testing functions to check the correctness
     pd.testing.assert_frame_equal(actual_output, expected_output)
-
-
-if __name__ == "__main__":
-    df = test_simple_path()
-    # test_intermediate_path()
-    # test_complex_path()
-    # print("All tests passed!")

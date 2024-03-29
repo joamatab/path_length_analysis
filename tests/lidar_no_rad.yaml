@@ -22,10 +22,14 @@
 
 # =========================================================================================
 
-gds_file: lidar_no_rad.gds
+gds_file: tests/lidar_no_rad.gds
 cell_name: lidar
-path_layer: [1, 0] 
-cutting_layer: [1, 10]
+path_layer: 
+  layer_no: 1
+  layer_dtype: 0
+cutting_layer:
+  layer_no: 1
+  layer_dtype: 10
 nodes: 
 - splitter_p1_start
 - splitter_p1_end
