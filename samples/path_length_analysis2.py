@@ -52,12 +52,13 @@ if __name__ == "__main__":
     # nodes = []
     # nodes += [f"i{i}" for i in range(4)]
     # nodes += [f"o{i}" for i in range(4)]
-    labels = [('i0', 'o0')]
+    nodes = ['i0', 'o0']
 
     df = path_length(
         gdspath,
-        path_layer=(1, 0),
-        label_layer=(2, 0),
-        labels=labels
+        path_layer=dict(layer_no=1, layer_dtype=0),
+        cutting_layer=dict(layer_no=2, layer_dtype=0),
+        nodes=nodes
     )
+    print(df)
     c.show()

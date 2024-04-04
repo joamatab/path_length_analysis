@@ -398,7 +398,6 @@ def construct_graph_data_frame(
             for sub_poly in splitted_polygons:
                 node_names = get_node_names(sub_poly, path_labels)
                 if len(node_names) == 1:
-                    continue
                     port1 = node_names[0]
                     port2 = f"polygon_{i}_tail_{tail_counter}"
                     tail_counter += 1
